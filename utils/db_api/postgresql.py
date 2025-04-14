@@ -89,13 +89,44 @@ class Database:
 
 
 
+    async def create_table_applications(self):
+        sql = """
+        CREATE TABLE IF NOT EXISTS applications (
+    id SERIAL PRIMARY KEY,
+        telegram_id BIGINT NOT NULL REFERENCES users_telegram(telegram_id) ON DELETE CASCADE,
+        full_name TEXT,
+        phone TEXT,
+        schedule_file TEXT,   -- store path like /public/{telegram_id}/schedule.docx
+        diploma_file TEXT,
+        passport_file TEXT,
+        reference_word TEXT,
+        reference_pdf TEXT,
+        status INTEGER DEFAULT 0,
+        is_accepted BOOLEAN DEFAULT FALSE
+        );
 
-    async def get_agent(self, telegram_id):
-        sql = "SELECT * FROM users WHERE phone = $1"
+        """
+        await self.execute(sql, execute=True)
+
+    async def create_application(self, telegram_id):
+        sql = "INSERT INTO applications (telegram_id) VALUES ($1) RETURNING *"
         return await self.execute(sql, telegram_id, fetchrow=True)
 
-    async def get_agent_abuturients(self, agent_id):
-        sql = "SELECT * FROM abuturient WHERE agent_id = $1"
-        return await self.execute(sql, agent_id, fetch=True)
+    async def update_application_step(self, telegram_id, field_name, field_value, status):
+        sql = f"UPDATE applications SET {field_name} = $1, status = $2 WHERE telegram_id = $3"
+        return await self.execute(sql, field_value, status, telegram_id, execute=True)
 
+    async def get_application(self, telegram_id):
+        sql = "SELECT * FROM applications WHERE telegram_id = $1"
+        return await self.execute(sql, telegram_id, fetchrow=True)
 
+    async def accept_application(self, telegram_id):
+        sql = "UPDATE applications SET is_accepted = TRUE WHERE telegram_id = $1"
+        return await self.execute(sql, telegram_id, execute=True)
+    async def create_application(self, telegram_id):
+        sql = "INSERT INTO applications (telegram_id) VALUES ($1) RETURNING *"
+        return await self.execute(sql, telegram_id, fetchrow=True)
+
+    async def update_application_step(self, telegram_id, field_name, field_value, status):
+        sql = f"UPDATE applications SET {field_name} = $1, status = $2 WHERE telegram_id = $3"
+        return await self.execute(sql, field_value, status, telegram_id, execute=True)
