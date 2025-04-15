@@ -1,6 +1,7 @@
 from aiogram import types
 from aiogram.dispatcher.filters import Text
 from loader import dp, db
+from handlers.users.start import send_welcome_message
 
 status_labels = {
     0: "🟡 Boshlanmagan",
@@ -39,3 +40,4 @@ async def check_my_status(callback: types.CallbackQuery):
 
     await callback.message.answer(text, parse_mode="HTML")
     await callback.answer()
+    await send_welcome_message(callback.message)

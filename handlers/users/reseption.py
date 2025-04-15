@@ -7,7 +7,7 @@ from loader import bot, db
 import os
 from loader import dp
 
-REVIEWER_ID = 855893763  # The admin who reviews the application
+REVIEWER_ID = [855893763, 36787770]  # The admin who reviews the application
 
 
 
@@ -43,14 +43,15 @@ async def notify_admin_about_application(telegram_id: int):
         InlineKeyboardButton(text="❌ Rad etish", callback_data=f"reject_{telegram_id}")
     )
 
-    # 5. Send ZIP file and message to admin
-    await bot.send_document(
-        chat_id=REVIEWER_ID,
-        document=InputFile(zip_path),
-        caption=text,
-        reply_markup=keyboard,
-        parse_mode="HTML"
-    )
+    # 5. Send to each admin
+    for admin_id in REVIEWER_ID:
+        await bot.send_document(
+            chat_id=admin_id,
+            document=InputFile(zip_path),
+            caption=text,
+            reply_markup=keyboard,
+            parse_mode="HTML"
+        )
 
 @dp.callback_query_handler(Text(startswith="accept_"))
 async def accept_application(callback: types.CallbackQuery):
