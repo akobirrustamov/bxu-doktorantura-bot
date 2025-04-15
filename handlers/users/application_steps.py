@@ -2,9 +2,13 @@ import os
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+
+from handlers.users.reseption import notify_admin_about_application
 from loader import dp, db
 from aiogram.dispatcher.filters import Text
 import re
+from handlers.users.start import send_welcome_message
+
 BASE_DIR = "./files"
 
 
@@ -27,11 +31,31 @@ def generate_file_path(telegram_id: int, filename: str) -> str:
 @dp.callback_query_handler(Text(equals="qabul"))
 async def start_application(callback: types.CallbackQuery, state: FSMContext):
     telegram_id = callback.from_user.id
+
+    # Check if the user already has an accepted application
+    application = await db.get_application(telegram_id)
+    if application and application.get("is_accepted"):
+        await callback.message.answer(
+            "✅ <b>Sizning arizangiz allaqachon qabul qilingan.</b>\n\n"
+            "Agar hujjatlar bilan bog‘liq biror xatolik yoki qo‘shimcha savolingiz bo‘lsa,\n"
+            "iltimos quyidagi raqam orqali bog‘laning:\n\n"
+           "<b>📞 Bog‘lanish uchun ma’lumotlar:</b>\n\n"
+            "👤 <b>Mas’ul shaxs:</b> Shuxrat Ostonov\n"
+            "💬 <b>Telegram:</b> <a href='https://t.me/OstanovSH'>@OstanovSH</a>\n"
+            "📱 <b>Telefon:</b> +998 90 512 42 44\n\n"
+            "🙏 Yana murojaat qilganingiz uchun tashakkur!",
+            parse_mode="HTML"
+        )
+        await callback.answer()
+        return
+
+    # Start a new application process
     await db.create_application(telegram_id)
     await callback.message.answer("1️⃣ To‘liq F.I.Sh (Familiya, Ism, Sharifingiz) kiriting:")
     await ApplicationStates.full_name.set()
     await callback.answer()
     await callback.message.delete()
+
 
 
 @dp.message_handler(state=ApplicationStates.full_name)
@@ -114,4 +138,8 @@ async def get_reference_pdf(message: types.Message, state: FSMContext):
     await file.download(destination=path)
     await db.update_application_step(message.from_user.id, "reference_pdf", f"/{path}", 7)
     await message.answer("✅ Arizangiz qabul qilindi. Yaqinda ko‘rib chiqiladi. Rahmat!")
+    await notify_admin_about_application(message.from_user.id)
     await state.finish()
+    await send_welcome_message(message)
+
+

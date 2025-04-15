@@ -89,22 +89,24 @@ class Database:
 
 
 
+
+
+
     async def create_table_applications(self):
         sql = """
         CREATE TABLE IF NOT EXISTS applications (
-    id SERIAL PRIMARY KEY,
-        telegram_id BIGINT NOT NULL REFERENCES users_telegram(telegram_id) ON DELETE CASCADE,
-        full_name TEXT,
-        phone TEXT,
-        schedule_file TEXT,   -- store path like /public/{telegram_id}/schedule.docx
-        diploma_file TEXT,
-        passport_file TEXT,
-        reference_word TEXT,
-        reference_pdf TEXT,
-        status INTEGER DEFAULT 0,
-        is_accepted BOOLEAN DEFAULT FALSE
+            id SERIAL PRIMARY KEY,
+            telegram_id BIGINT NOT NULL REFERENCES users_telegram(telegram_id) ON DELETE CASCADE,
+            full_name TEXT,
+            phone TEXT,
+            schedule_file TEXT,
+            diploma_file TEXT,
+            passport_file TEXT,
+            reference_word TEXT,
+            reference_pdf TEXT,
+            status INTEGER DEFAULT 0,
+            is_accepted BOOLEAN DEFAULT FALSE
         );
-
         """
         await self.execute(sql, execute=True)
 
@@ -112,9 +114,18 @@ class Database:
         sql = "INSERT INTO applications (telegram_id) VALUES ($1) RETURNING *"
         return await self.execute(sql, telegram_id, fetchrow=True)
 
-    async def update_application_step(self, telegram_id, field_name, field_value, status):
-        sql = f"UPDATE applications SET {field_name} = $1, status = $2 WHERE telegram_id = $3"
-        return await self.execute(sql, field_value, status, telegram_id, execute=True)
+    async def update_application_step(self, telegram_id, field_name, field_value, status: int = None):
+        # Update one specific field and optionally the status
+        if status is not None:
+            sql = f"UPDATE applications SET {field_name} = $1, status = $2 WHERE telegram_id = $3"
+            return await self.execute(sql, field_value, status, telegram_id, execute=True)
+        else:
+            sql = f"UPDATE applications SET {field_name} = $1 WHERE telegram_id = $2"
+            return await self.execute(sql, field_value, telegram_id, execute=True)
+
+    async def update_application_status(self, telegram_id, new_status):
+        sql = "UPDATE applications SET status = $1 WHERE telegram_id = $2"
+        return await self.execute(sql, new_status, telegram_id, execute=True)
 
     async def get_application(self, telegram_id):
         sql = "SELECT * FROM applications WHERE telegram_id = $1"
@@ -123,10 +134,32 @@ class Database:
     async def accept_application(self, telegram_id):
         sql = "UPDATE applications SET is_accepted = TRUE WHERE telegram_id = $1"
         return await self.execute(sql, telegram_id, execute=True)
-    async def create_application(self, telegram_id):
-        sql = "INSERT INTO applications (telegram_id) VALUES ($1) RETURNING *"
+
+    async def get_application(self, telegram_id):
+        sql = """
+        SELECT 
+            a.*, 
+            u.username 
+        FROM 
+            applications a
+        JOIN 
+            users_telegram u ON u.telegram_id = a.telegram_id
+        WHERE 
+            a.telegram_id = $1
+        """
         return await self.execute(sql, telegram_id, fetchrow=True)
 
-    async def update_application_step(self, telegram_id, field_name, field_value, status):
-        sql = f"UPDATE applications SET {field_name} = $1, status = $2 WHERE telegram_id = $3"
-        return await self.execute(sql, field_value, status, telegram_id, execute=True)
+
+    async def get_application(self, telegram_id):
+        sql = """
+        SELECT 
+            a.*, 
+            u.username 
+        FROM 
+            applications a
+        JOIN 
+            users_telegram u ON u.telegram_id = a.telegram_id
+        WHERE 
+            a.telegram_id = $1
+        """
+        return await self.execute(sql, telegram_id, fetchrow=True)
