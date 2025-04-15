@@ -18,7 +18,6 @@ async def handle_contact_us(callback: types.CallbackQuery):
         "📄 <b>Jadval fayli</b> — Word hujjati formatida (.doc, .docx yoki .rtf)\n"
         "🎓 <b>Magistrlik diplomi</b> — PDF formatda (.pdf)\n"
         "🆔 <b>Shaxsiy pasport nusxasi</b> — PDF formatda\n"
-        "🏢 <b>Ish joyidan tavsiyanoma</b> — Word hujjati (.doc yoki .docx)\n"
         "🏢 <b>Ish joyidan tavsiyanoma (PDF)</b> — .pdf formatda\n\n"
         "📝 Hujjatlar to‘liq va to‘g‘ri bo‘lishi kerak. Har qanday savollar bo‘yicha biz bilan bog‘lanishingiz mumkin.\n\n"
         "📧 E-mail: info@bxu.uz\n"

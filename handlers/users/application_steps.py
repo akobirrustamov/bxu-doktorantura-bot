@@ -34,6 +34,10 @@ def step_keyboard():
     )
 
 
+def is_allowed_file(filename, allowed_exts):
+    return any(filename.endswith(ext) for ext in allowed_exts)
+
+
 @dp.callback_query_handler(Text(equals="qabul"))
 async def start_application(callback: types.CallbackQuery, state: FSMContext):
     telegram_id = callback.from_user.id
@@ -43,7 +47,6 @@ async def start_application(callback: types.CallbackQuery, state: FSMContext):
             "✅ <b>Sizning arizangiz allaqachon qabul qilingan.</b>\n\n"
             "Agar hujjatlar bilan bog‘liq biror xatolik yoki qo‘shimcha savolingiz bo‘lsa,\n"
             "iltimos quyidagi raqam orqali bog‘laning:\n\n"
-            "<b>📞 Bog‘lanish uchun ma’lumotlar:</b>\n\n"
             "👤 <b>Mas‘ul shaxs:</b> Shuxrat Ostonov\n"
             "💬 <b>Telegram:</b> <a href='https://t.me/OstanovSH'>@OstanovSH</a>\n"
             "📱 <b>Telefon:</b> +998 90 512 42 44\n\n"
@@ -139,7 +142,7 @@ async def get_phone(message: types.Message, state: FSMContext):
 async def get_schedule_file(message: types.Message, state: FSMContext):
     file = message.document
     filename = file.file_name.lower()
-    if not filename.endswith((".doc", ".docx", ".rtf")):
+    if not is_allowed_file(filename, (".doc", ".docx", ".rtf")):
         await message.answer("❌ Faqat .doc/.docx/.rtf fayllar qabul qilinadi.")
         return
     path = generate_file_path(message.from_user.id, file.file_name)
@@ -152,6 +155,10 @@ async def get_schedule_file(message: types.Message, state: FSMContext):
 @dp.message_handler(content_types=types.ContentType.DOCUMENT, state=ApplicationStates.diploma_file)
 async def get_diploma_file(message: types.Message, state: FSMContext):
     file = message.document
+    filename = file.file_name.lower()
+    if not is_allowed_file(filename, (".pdf",)):
+        await message.answer("❌ Faqat .pdf fayllar qabul qilinadi.")
+        return
     path = generate_file_path(message.from_user.id, file.file_name)
     await file.download(destination=path)
     await db.update_application_step(message.from_user.id, "diploma_file", f"/{path}", 4)
@@ -162,25 +169,32 @@ async def get_diploma_file(message: types.Message, state: FSMContext):
 @dp.message_handler(content_types=types.ContentType.DOCUMENT, state=ApplicationStates.passport_file)
 async def get_passport_file(message: types.Message, state: FSMContext):
     file = message.document
+    filename = file.file_name.lower()
+    if not is_allowed_file(filename, (".pdf",)):
+        await message.answer("❌ Faqat .pdf fayllar qabul qilinadi.")
+        return
     path = generate_file_path(message.from_user.id, file.file_name)
     await file.download(destination=path)
     await db.update_application_step(message.from_user.id, "passport_file", f"/{path}", 5)
     await message.answer(
         "6⃣ <b>Rektor nomiga tavsiyanoma xatini yuboring</b>\n\n"
-        "Iltimos, quyidagi ma’lumotlarga asoslangan holda rasmiy xatni tayyorlab, Word formatida (.doc/.docx) yuboring:\n\n"
+        "Iltimos, quyidagi ma’lumotlarga asoslangan holda rasmiy xatni tayyorlab, Fayl formatida (.pdf) yuboring:\n\n"
         "📌 <b>Kimga:</b> Buxoro Xalqaro Universiteti Rektori\n"
         "📌 <b>Ismi:</b> Psixologiya fanlari doktori, professor Baratov Sharif Ramazonovich\n\n"
         "Xat rasmiy tashkilot (ish joyingiz) tomonidan yozilgan bo‘lishi va imzo/pechat bilan tasdiqlangan bo‘lishi lozim.",
         parse_mode="HTML",
         reply_markup=step_keyboard()
     )
-
     await ApplicationStates.reference_word.set()
 
 
 @dp.message_handler(content_types=types.ContentType.DOCUMENT, state=ApplicationStates.reference_word)
 async def get_reference_word(message: types.Message, state: FSMContext):
     file = message.document
+    filename = file.file_name.lower()
+    if not is_allowed_file(filename, (".pdf",)):
+        await message.answer("❌ Faqat .pdf fayllar qabul qilinadi.")
+        return
     path = generate_file_path(message.from_user.id, file.file_name)
     await file.download(destination=path)
     await db.update_application_step(message.from_user.id, "reference_word", f"/{path}", 6)
