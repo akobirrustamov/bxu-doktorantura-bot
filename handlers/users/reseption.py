@@ -7,7 +7,7 @@ from loader import bot, db
 import os
 from loader import dp
 
-REVIEWER_ID = [855893763, 36787770]  # The admin who reviews the application
+REVIEWER_ID = [855893763, 367877704]  # The admin who reviews the application
 
 
 
