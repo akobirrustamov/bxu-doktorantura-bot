@@ -10,7 +10,7 @@ async def handle_contact_us(callback: types.CallbackQuery):
         "<b>📚 Doktorantura uchun ariza topshirish bo‘yicha ma’lumotlar:</b>\n\n"
         "Hurmatli nomzod, qabul jarayonini muvaffaqiyatli yakunlash uchun quyidagi hujjatlarni tayyorlab, topshirishingiz kerak:\n\n"
         "✅ <b>To‘liq F.I.Sh</b> — Familiya, Ism, Sharifingiz\n"
-        "📱 <b>Telefon raqam</b> — contact (ulashish) ko‘rinishida\n"
+        "📱 <b>Telefon raqam</b> — (+998901234567) ko‘rinishida\n"
         "📄 <b>Jadval fayli</b> — Word hujjati formatida (.doc yoki .docx)\n"
         "🎓 <b>Magistrlik diplomi</b> — PDF formatda (.pdf)\n"
         "🆔 <b>Shaxsiy pasport nusxasi</b> — PDF formatda\n"

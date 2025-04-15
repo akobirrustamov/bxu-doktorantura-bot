@@ -1,5 +1,5 @@
 import shutil
-
+from handlers.users.start import send_welcome_message
 from aiogram.dispatcher.filters import Text
 from aiogram.types import InputFile, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram import types
@@ -55,11 +55,24 @@ async def notify_admin_about_application(telegram_id: int):
 @dp.callback_query_handler(Text(startswith="accept_"))
 async def accept_application(callback: types.CallbackQuery):
     telegram_id = int(callback.data.split("_")[1])
-    await db.update_application_step(telegram_id, 8)
-    await db.update_application_step(telegram_id, field_name="status", field_value=-1, status=-1)
-    await bot.send_message(telegram_id, "✅ Arizangiz muvofaqqiyatli qabul qilindi. Tabriklaymiz!")
+
+    # 1. Update status and mark as accepted
+    await db.update_application_status(telegram_id, 8)  # status = 8 → application complete
+    await db.accept_application(telegram_id)            # is_accepted = TRUE
+
+    # 2. Notify user
+    await bot.send_message(
+        telegram_id,
+        "✅ <b>Arizangiz muvofaqqiyatli qabul qilindi!</b>\n\n"
+        "Rasmiylar tomonidan ko‘rib chiqildi va tasdiqlandi.\n"
+        "Tez orada siz bilan bog‘lanamiz.",
+        parse_mode="HTML"
+    )
+
+    # 3. Clean up inline buttons for admin
     await callback.message.edit_reply_markup()
     await callback.answer("Qabul qilindi")
+
 
 
 
@@ -70,10 +83,24 @@ async def reject_application(callback: types.CallbackQuery):
     # 1. Update status in DB
     await db.update_application_status(telegram_id, -1)
 
-    # 2. Send message to user
-    await bot.send_message(telegram_id, "❌ Afsuski, arizangiz rad etildi. Iltimos, hujjatlarni tekshirib qayta topshiring.")
+    # 2. Send rejection message
+    await bot.send_message(
+        telegram_id,
+        "❌ <b>Afsuski, arizangiz rad etildi.</b>\n\n"
+        "Iltimos, hujjatlaringizni tekshirib qayta topshiring.",
+        parse_mode="HTML"
+    )
 
-    # 3. Clean up files
+    # 3. Send main menu again
+    fake_msg = types.Message(
+        message_id=callback.message.message_id,
+        from_user=callback.from_user,
+        chat=callback.message.chat,
+        date=callback.message.date
+    )
+    await send_welcome_message(fake_msg)
+
+    # 4. Clean up files
     user_folder = os.path.join("./files", str(telegram_id))
     zip_path = os.path.join("./files", f"{telegram_id}_application.zip")
 
@@ -82,8 +109,7 @@ async def reject_application(callback: types.CallbackQuery):
     if os.path.exists(zip_path):
         os.remove(zip_path)
 
-    # 4. Clean up message in admin chat
+    # 5. Clean up inline buttons in admin panel
     await callback.message.edit_reply_markup()
     await callback.answer("Rad etildi")
     await callback.message.delete()
-
