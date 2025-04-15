@@ -11,6 +11,8 @@ async def handle_contact_us(callback: types.CallbackQuery):
         "👤 <b>Mas’ul shaxs:</b> Shuxrat Ostonov\n"
         "💬 <b>Telegram:</b> <a href='https://t.me/OstanovSH'>@OstanovSH</a>\n"
         "📱 <b>Telefon:</b> +998 90 512 42 44\n\n"
+        "📧 E-mail: info@bxu.uz\n"
+        "🌐 Veb-sayt: https://bxu.uz\n"
         "Agar sizda qabul jarayoni yoki hujjatlar bo‘yicha savollar bo‘lsa, bemalol bog‘lanishingiz mumkin. "
         "Yordam berishdan mamnunmiz! 😊"
     )

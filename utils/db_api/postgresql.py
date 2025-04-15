@@ -163,3 +163,7 @@ class Database:
             a.telegram_id = $1
         """
         return await self.execute(sql, telegram_id, fetchrow=True)
+
+    async def delete_application(self, telegram_id):
+        sql = "DELETE FROM applications WHERE telegram_id = $1"
+        return await self.execute(sql, telegram_id, execute=True)
