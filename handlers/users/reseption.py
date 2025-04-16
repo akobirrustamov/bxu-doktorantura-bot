@@ -133,13 +133,5 @@ async def process_reject_reason(message: types.Message, state: FSMContext):
             text="✅ Rad etish sababi yuborildi va foydalanuvchi xabardor qilindi."
         )
 
-    # 5. Return to start menu if needed (optional)
-    fake_msg = types.Message(
-        message_id=message.message_id,
-        from_user=message.from_user,
-        chat=message.chat,
-        date=message.date
-    )
-    await send_welcome_message(fake_msg)
-
+  
     await state.finish()
